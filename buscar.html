@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buscar Visitante - Feira de Profissões</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <a href="index.html" class="btn-voltar">← Voltar</a>
+
+    <h1>BUSCAR VISITANTE</h1>
+
+    <div class="search-container">
+        <label for="nome">Nome Completo</label>
+        <input type="text" id="nome" name="nome" placeholder="Digite o nome do visitante">
+
+        <button onclick="buscarVisitante()">Buscar</button>
+    </div>
+
+    <div class="table-container">
+        <table id="resultados">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>CPF</th>
+                    <th>E-mail</th>
+                    <th>Telefone</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000';
+
+        async function buscarVisitante() {
+            const nome = document.getElementById('nome').value;
+            if (nome.trim() === '') {
+                alert('Por favor, digite um nome para buscar.');
+                return;
+            }
+
+            const tbody = document.querySelector('#resultados tbody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4">Buscando visitante: ${nome}...</td>
+                </tr>
+            `;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/buscar?nome=${encodeURIComponent(nome)}`);
+                const results = await response.json();
+                if (response.ok) {
+                    if (results.length > 0) {
+                        tbody.innerHTML = results.map(row => `
+                            <tr>
+                                <td>${row.nome_completo}</td>
+                                <td>${row.cpf}</td>
+                                <td>${row.email}</td>
+                                <td>${row.telefone}</td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="4">Nenhum visitante encontrado.</td>
+                            </tr>
+                        `;
+                    }
+                } else {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="4">Erro: ${results.error}</td>
+                        </tr>
+                    `;
+                }
+            } catch (error) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4">Erro ao conectar com o servidor.</td>
+                    </tr>
+                `;
+                console.error(error);
+            }
+        }
+    </script>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
